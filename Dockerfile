@@ -1,7 +1,7 @@
-FROM debian
+FROM golang:onbuild as build
 
-RUN apt-get update -y && apt-get install ca-certificates -y
+FROM alpine
+RUN apk --update upgrade && apk add ca-certificates && rm -rf /var/cache/apk/*
+COPY --from=build /go/bin/app /usr/local/bin/oauth2_proxy
    
-COPY oauth2_proxy /usr/local/bin/oauth2_proxy
-
 ENTRYPOINT ["oauth2_proxy"]
