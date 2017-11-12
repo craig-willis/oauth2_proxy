@@ -574,6 +574,7 @@ func (p *OAuthProxy) AuthenticateOnly(rw http.ResponseWriter, req *http.Request)
 	} else {
 		http.Error(rw, "unauthorized request", http.StatusUnauthorized)
 	}
+	p.Proxy(rw, req)
 }
 
 func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
