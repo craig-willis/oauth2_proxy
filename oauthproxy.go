@@ -30,6 +30,7 @@ var SignatureHeaders []string = []string{
 	"X-Forwarded-User",
 	"X-Forwarded-Email",
 	"X-Forwarded-Access-Token",
+	"X-Forwarded-Other-Tokens",
 	"Cookie",
 	"Gap-Auth",
 }
@@ -410,6 +411,11 @@ func (p *OAuthProxy) GetRedirect(req *http.Request) (redirect string, err error)
 		return
 	}
 
+	if p.SkipProviderButton {
+		redirect = req.RequestURI
+		return
+	}
+
 	redirect = req.Form.Get("rd")
 	fmt.Printf("GetRedirect %s\n", redirect)
 	if redirect == "" || !strings.HasPrefix(redirect, "/") || strings.HasPrefix(redirect, "//") {
@@ -577,7 +583,6 @@ func (p *OAuthProxy) AuthenticateOnly(rw http.ResponseWriter, req *http.Request)
 	} else {
 		http.Error(rw, "unauthorized request", http.StatusUnauthorized)
 	}
-	p.Proxy(rw, req)
 }
 
 func (p *OAuthProxy) Proxy(rw http.ResponseWriter, req *http.Request) {
@@ -686,6 +691,7 @@ func (p *OAuthProxy) Authenticate(rw http.ResponseWriter, req *http.Request) int
 	}
 	if p.PassAccessToken && session.AccessToken != "" {
 		req.Header["X-Forwarded-Access-Token"] = []string{session.AccessToken}
+		req.Header["X-Forwarded-Other-Tokens"] = []string{session.OtherTokens}
 	}
 	if session.Email == "" {
 		rw.Header().Set("GAP-Auth", session.User)
